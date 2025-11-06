@@ -1434,21 +1434,337 @@
         }
     }
 
-    async function loadStaff() {
-        try {
-            // In a real app, you'd have a specific endpoint for staff
-            const response = await fetch('http://localhost:3000/api/users', {
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            });
-            const users = await response.json();
-            adminData.staff = users.filter(user => user.type === 'staff');
-            populateStaffTable();
-        } catch (error) {
-            console.error('Error loading staff:', error);
+   // Staff Management - Load Staff
+// Staff Management - Load Staff (FIXED)
+// Staff Management - Load Staff (UPDATED)
+// Staff Management - Load Staff (FIXED)
+async function loadStaff() {
+    try {
+        console.log('Loading staff from API...');
+        const response = await fetch('http://localhost:3000/api/staff');
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const staff = await response.json();
+        console.log('Staff data received:', staff);
+        
+        adminData.staff = staff; // Update adminData
+        populateStaffTable(staff);
+        
+    } catch (error) {
+        console.error('Failed to load staff:', error);
+        const staffTable = document.getElementById('staffTable');
+        if (staffTable) {
+            staffTable.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading staff: ' + error.message + '</td></tr>';
         }
     }
+}
+
+// Populate Staff Table (FIXED)
+function populateStaffTable(staff = adminData.staff) {
+    const table = document.getElementById('staffTable');
+    if (!table) return;
+    
+    if (staff.length === 0) {
+        table.innerHTML = '<tr><td colspan="7" class="text-center">No staff members found</td></tr>';
+        return;
+    }
+    
+    table.innerHTML = staff.map(staffMember => `
+        <tr>
+            <td><strong>${staffMember.name}</strong></td>
+            <td>${staffMember.user_type || 'Staff'}</td>
+            <td>Adoption Department</td>
+            <td>${staffMember.email}<br><small>${staffMember.phone || 'No phone'}</small></td>
+            <td>${getStaffActiveCases(staffMember.id)} cases</td>
+            <td><span class="status-badge status-verified">Active</span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn view" onclick="viewStaff(${staffMember.id})">
+                        <i class="fas fa-eye"></i> Profile
+                    </button>
+                    <button class="action-btn assign" onclick="openAssignWorkModal(${staffMember.id})">
+                        <i class="fas fa-tasks"></i> Assign Work
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Get active cases for staff
+function getStaffActiveCases(staffId) {
+    // This would normally come from your database
+    // For now, return a random number for demo
+    return Math.floor(Math.random() * 5);
+}
+
+// Open Assign Work Modal (FIXED)
+function openAssignWorkModal(staffId = null) {
+    // Populate staff dropdown
+    const staffSelect = document.getElementById('workStaff');
+    staffSelect.innerHTML = '<option value="">Select Staff</option>' + 
+        adminData.staff.map(staff => 
+            `<option value="${staff.id}" ${staffId === staff.id ? 'selected' : ''}>${staff.name} (${staff.email})</option>`
+        ).join('');
+    
+    // Set form data if staffId is provided
+    if (staffId) {
+        document.getElementById('workStaff').value = staffId;
+    }
+    
+    assignWorkModal.style.display = 'flex';
+}
+
+// Assign New Work (FIXED)
+async function assignNewWork() {
+    const staffId = document.getElementById('workStaff').value;
+    const workType = document.getElementById('workType').value;
+    const workDescription = document.getElementById('workDescription').value;
+    const workDeadline = document.getElementById('workDeadline').value;
+
+    if (!staffId || !workType || !workDescription || !workDeadline) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/staff/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                staff_id: staffId,
+                task_description: workDescription,
+                due_date: workDeadline,
+                priority: 'medium'
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            assignWorkModal.style.display = 'none';
+            assignWorkForm.reset();
+            showNotification('Task assigned successfully!', 'success');
+            
+            // Refresh tasks if needed
+            await loadStaff();
+        } else {
+            showNotification('Failed to assign task: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Task assignment failed:', error);
+        showNotification('Failed to assign task: ' + error.message, 'error');
+    }
+}
+
+// Populate Visit Form (FIXED)
+async function populateVisitForm() {
+    try {
+        // Load staff for dropdown
+        const staffResponse = await fetch('http://localhost:3000/api/staff');
+        const staff = await staffResponse.json();
+        
+        const staffSelect = document.getElementById('visitStaff');
+        staffSelect.innerHTML = '<option value="">Select Staff</option>' + 
+            staff.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        
+        // Load families for dropdown
+        const familiesResponse = await fetch('http://localhost:3000/api/families');
+        const families = await familiesResponse.json();
+        
+        const familySelect = document.getElementById('visitParent');
+        familySelect.innerHTML = '<option value="">Select Parent/Family</option>' + 
+            families.map(f => `<option value="${f.id}">${f.name} (${f.email})</option>`).join('');
+            
+    } catch (error) {
+        console.error('Error populating visit form:', error);
+    }
+}
+
+// Schedule New Visit (FIXED)
+async function scheduleNewVisit() {
+    const parentId = document.getElementById('visitParent').value;
+    const staffId = document.getElementById('visitStaff').value;
+    const visitDate = document.getElementById('visitDate').value;
+    const purpose = document.getElementById('visitPurpose').value;
+
+    if (!parentId || !staffId || !visitDate || !purpose) {
+        showNotification('Please fill all fields', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/visits/schedule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                parent_id: parentId,
+                staff_id: staffId,
+                visit_date: visitDate,
+                purpose: purpose
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            scheduleVisitModal.style.display = 'none';
+            scheduleVisitForm.reset();
+            showNotification('Home visit scheduled successfully!', 'success');
+            
+            // Refresh visits
+            await loadVisits();
+        } else {
+            showNotification('Failed to schedule visit: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Visit scheduling failed:', error);
+        showNotification('Failed to schedule visit: ' + error.message, 'error');
+    }
+}
+
+// Load Visits (FIXED)
+async function loadVisits() {
+    try {
+        const response = await fetch('http://localhost:3000/api/visits/all');
+        const visits = await response.json();
+        adminData.homeVisits = visits;
+        populateVisitsTable(visits);
+    } catch (error) {
+        console.error('Error loading visits:', error);
+    }
+}
+
+// Populate Visits Table (FIXED)
+function populateVisitsTable(visits = adminData.homeVisits) {
+    const table = document.getElementById('visitsTable');
+    if (!table) return;
+    
+    if (visits.length === 0) {
+        table.innerHTML = '<tr><td colspan="7" class="text-center">No visits scheduled</td></tr>';
+        return;
+    }
+    
+    table.innerHTML = visits.map(visit => `
+        <tr>
+            <td>${new Date(visit.scheduled_date).toLocaleString()}</td>
+            <td>${visit.parent_name || 'N/A'}</td>
+            <td>${visit.staff_name || 'N/A'}</td>
+            <td>${visit.purpose || 'Home Visit'}</td>
+            <td><span class="status-badge status-${visit.status || 'scheduled'}">${visit.status || 'scheduled'}</span></td>
+            <td>${visit.report ? 'Available' : 'Not submitted'}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn view" onclick="viewVisitReport(${visit.id})">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="action-btn edit" onclick="rescheduleVisit(${visit.id})">
+                        <i class="fas fa-calendar-alt"></i> Reschedule
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Assign Task
+async function assignTask() {
+    try {
+        const staffId = document.getElementById('staffSelect').value;
+        const taskDesc = document.getElementById('taskDescription').value;
+        const dueDate = document.getElementById('dueDate').value;
+        const priority = document.getElementById('taskPriority').value;
+        
+        const response = await fetch('http://localhost:3000/api/staff/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                staff_id: staffId,
+                task_description: taskDesc,
+                due_date: dueDate,
+                priority: priority
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert('Task assigned successfully!');
+            // Clear form
+            document.getElementById('taskAssignmentForm').reset();
+        } else {
+            alert('Failed to assign task: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Task assignment failed:', error);
+        alert('Failed to assign task');
+    }
+}
+
+// Schedule Home Visit
+async function scheduleVisit() {
+    try {
+        const familyId = document.getElementById('familySelect').value;
+        const visitDate = document.getElementById('visitDate').value;
+        const staffId = document.getElementById('visitStaff').value;
+        const notes = document.getElementById('visitNotes').value;
+        
+        const response = await fetch('http://localhost:3000/api/visits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                family_id: familyId,
+                visit_date: visitDate,
+                assigned_staff: staffId,
+                notes: notes
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert('Home visit scheduled successfully!');
+            // Clear form
+            document.getElementById('visitForm').reset();
+        } else {
+            alert('Failed to schedule visit: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Visit scheduling failed:', error);
+        alert('Failed to schedule visit');
+    }
+}
+
+// Load Families for Selection
+async function loadFamilies() {
+    try {
+        const response = await fetch('http://localhost:3000/api/families');
+        const families = await response.json();
+        
+        // Update family dropdowns
+        const familySelects = document.querySelectorAll('.family-select');
+        familySelects.forEach(select => {
+            select.innerHTML = families.map(family => 
+                `<option value="${family.id}">${family.name} (${family.email})</option>`
+            ).join('');
+        });
+    } catch (error) {
+        console.error('Failed to load families:', error);
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadStaff();
+    loadFamilies();
+});
 
     async function loadDocuments() {
         try {
@@ -1882,7 +2198,58 @@ async function addNewStaff() {
         </tr>
     `).join('');
 }
+// Test API connection on page load
+async function testAPIs() {
+    console.log('Testing API connections...');
+    
+    try {
+        // Test staff API
+        const staffResponse = await fetch('http://localhost:3000/api/staff');
+        console.log('Staff API status:', staffResponse.status);
+        
+        if (staffResponse.ok) {
+            const staffData = await staffResponse.json();
+            console.log('Staff data received:', staffData);
+        }
+        
+        // Test children API
+        const childrenResponse = await fetch('http://localhost:3000/api/children');
+        console.log('Children API status:', childrenResponse.status);
+        
+    } catch (error) {
+        console.error('API test failed:', error);
+    }
+}
 
+// Call this when admin page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin page loaded');
+    testAPIs();
+    loadStaff();
+});
+// Initialize all dashboard components (FIXED)
+async function initializeDashboard() {
+    console.log('Initializing dashboard...');
+    
+    try {
+        await Promise.all([
+            loadChildren(),
+            loadParents(),
+            loadStaff(),
+            loadDocuments(),
+            loadVisits()
+        ]);
+        
+        updateDashboardStats();
+        populateActivities();
+        populatePendingActions();
+        populateReports();
+        
+        console.log('Dashboard initialized successfully');
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    }
+}
     // Add other populate functions as needed...
 </script>
 
