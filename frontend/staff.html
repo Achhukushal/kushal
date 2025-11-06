@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - AdoptLink</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2c3e50;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --sidebar-width: 250px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--secondary), var(--dark));
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding: 20px 0;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .logo i {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+        }
+        
+        .menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+        
+        .header h2 {
+            color: var(--secondary);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        /* Dashboard Content */
+        .dashboard-content {
+            display: none;
+        }
+        
+        .dashboard-content.active {
+            display: block;
+        }
+        
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .stat-info h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: var(--secondary);
+        }
+        
+        .stat-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .stat-trend {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        .trend-neutral {
+            color: var(--warning);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--secondary);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table th {
+            background-color: var(--light);
+            color: var(--dark);
+            font-weight: 600;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-in-progress {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-scheduled {
+            background-color: #e2e3f3;
+            color: #383d8c;
+        }
+        
+        .status-reschedule-requested {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            font-size: 16px;
+        }
+        
+        .search-box button {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .notification.success {
+            background-color: var(--success);
+        }
+        
+        .notification.warning {
+            background-color: var(--warning);
+        }
+        
+        .notification.error {
+            background-color: var(--danger);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                overflow: hidden;
+            }
+            
+            .logo h1, .menu-item span {
+                display: none;
+            }
+            
+            .logo {
+                justify-content: center;
+                padding: 0 0 20px;
+            }
+            
+            .logo i {
+                margin-right: 0;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-hands-helping"></i>
+            <h1>AdoptLink</h1>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="menu-item active" data-target="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </li>
+            <li class="menu-item" data-target="assigned-work">
+                <i class="fas fa-tasks"></i>
+                <span>Assigned Work</span>
+            </li>
+            <li class="menu-item" data-target="scheduled-visits">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Scheduled Visits</span>
+            </li>
+            <li class="menu-item" data-target="reports">
+                <i class="fas fa-chart-bar"></i>
+                <span>Work Reports</span>
+            </li>
+            <li class="menu-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2 id="pageTitle">Staff Dashboard</h2>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">SS</div>
+                <div id="userName">Sarah Staff</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content active" id="dashboard">
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #e8f4fc; color: var(--primary);">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="assignedTasks">0</h3>
+                        <p>Assigned Tasks</p>
+                        <div class="stat-trend" id="assignedTasksTrend">
+                            <i class="fas fa-arrow-up trend-up"></i>
+                            <span>+2 this week</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #e8f6f3; color: var(--success);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="completedTasks">0</h3>
+                        <p>Completed Tasks</p>
+                        <div class="stat-trend" id="completedTasksTrend">
+                            <i class="fas fa-arrow-up trend-up"></i>
+                            <span>+5 this month</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #fef9e7; color: var(--warning);">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="pendingDocuments">0</h3>
+                        <p>Pending Documents</p>
+                        <div class="stat-trend" id="pendingDocumentsTrend">
+                            <i class="fas fa-minus trend-neutral"></i>
+                            <span>No change</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #f0e6ff; color: #8e44ad;">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="scheduledVisitsCount">0</h3>
+                        <p>Scheduled Visits</p>
+                        <div class="stat-trend" id="scheduledVisitsTrend">
+                            <i class="fas fa-arrow-up trend-up"></i>
+                            <span>+3 this week</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">My Recent Tasks</h3>
+                    <button class="btn btn-primary" onclick="refreshTasks()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Task Type</th>
+                                <th>Assigned By</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTasks">
+                            <!-- Tasks will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Upcoming Deadlines</h3>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Task Description</th>
+                                <th>Due Date</th>
+                                <th>Days Left</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="upcomingDeadlines">
+                            <!-- Upcoming deadlines will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Work Content -->
+        <div class="dashboard-content" id="assigned-work">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">My Assigned Work</h3>
+                    <div class="search-box">
+                        <input type="text" id="workSearch" placeholder="Search tasks...">
+                        <button onclick="searchTasks()"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Task Type</th>
+                                <th>Description</th>
+                                <th>Assigned Date</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assignedWorkTable">
+                            <!-- Assigned work will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduled Visits Content -->
+        <div class="dashboard-content" id="scheduled-visits">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Scheduled Visits</h3>
+                    <button class="btn btn-primary" id="scheduleVisitBtn">
+                        <i class="fas fa-calendar-plus"></i> Schedule Visit
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Parent Name</th>
+                                <th>Child Name</th>
+                                <th>Visit Type</th>
+                                <th>Scheduled Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduledVisitsTable">
+                            <!-- Scheduled visits will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Reschedule Requests</h3>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Parent Name</th>
+                                <th>Original Date</th>
+                                <th>Requested Date</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rescheduleRequestsTable">
+                            <!-- Reschedule requests will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Content -->
+        <div class="dashboard-content" id="reports">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Work Reports</h3>
+                    <button class="btn btn-primary" onclick="generateWorkReport()">
+                        <i class="fas fa-download"></i> Generate Report
+                    </button>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Tasks Completed This Month</div>
+                        <div class="info-value">15</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Average Completion Time</div>
+                        <div class="info-value">5.2 days</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Documents Verified This Month</div>
+                        <div class="info-value">24</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Home Visits Completed</div>
+                        <div class="info-value">8</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Pending Tasks</div>
+                        <div class="info-value">5</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Overdue Tasks</div>
+                        <div class="info-value">2</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Submit Work Report</h3>
+                </div>
+               
+                    <div class="form-group">
+                        <label for="reportDetails">Work Details</label>
+                        <textarea id="reportDetails" class="form-control" placeholder="Describe the work completed, findings, recommendations, etc." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportStatus">Status Update</label>
+                        <select id="reportStatus" class="form-control" required>
+                            <option value="">Select status</option>
+                            <option value="completed">Completed</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="on-hold">On Hold</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportDate">Completion Date</label>
+                        <input type="date" id="reportDate" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-paper-plane"></i> Submit Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Details Modal -->
+    <div class="modal" id="taskDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Task Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="taskDetailsContent">
+                <!-- Task details will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Progress Modal -->
+    <div class="modal" id="updateProgressModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Task Progress</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="updateProgressForm">
+                <input type="hidden" id="updateTaskId">
+                <div class="form-group">
+                    <label for="progressStatus">Status</label>
+                    <select id="progressStatus" class="form-control" required>
+                        <option value="">Select status</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="on-hold">On Hold</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="progressNotes">Progress Notes</label>
+                    <textarea id="progressNotes" class="form-control" placeholder="Add notes about your progress..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="estimatedCompletion">Estimated Completion Date</label>
+                    <input type="date" id="estimatedCompletion" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Progress
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Schedule Visit Modal -->
+    <div class="modal" id="scheduleVisitModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Schedule Visit</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="scheduleVisitForm">
+                <div class="form-group">
+                    <label for="visitParent">Select Parent</label>
+                    <select id="visitParent" class="form-control" required>
+                        <option value="">Select Parent</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="visitChild">Select Child</label>
+                    <select id="visitChild" class="form-control" required>
+                        <option value="">Select Child</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="visitType">Visit Type</label>
+                    <select id="visitType" class="form-control" required>
+                        <option value="">Select Type</option>
+                        <option value="home-visit">Home Visit</option>
+                        <option value="follow-up">Follow-up Visit</option>
+                        <option value="assessment">Assessment Visit</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="visitDate">Visit Date</label>
+                    <input type="datetime-local" id="visitDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="visitPurpose">Purpose</label>
+                    <textarea id="visitPurpose" class="form-control" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-calendar-check"></i> Schedule Visit
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reschedule Request Modal -->
+    <div class="modal" id="rescheduleRequestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reschedule Request</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="rescheduleRequestContent">
+                <!-- Reschedule request details will be populated by JavaScript -->
+            </div>
+            <div class="action-buttons" style="margin-top: 20px; justify-content: center;">
+                <button class="btn btn-success" onclick="approveReschedule()">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="btn btn-danger" onclick="rejectReschedule()">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Check authentication and get token
+const token = localStorage.getItem('token');
+if (!token) {
+    window.location.href = 'login.html';
+    throw new Error('Not authenticated');
+}
+
+// Add this to all fetch requests
+const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + token
+};
+        // Sample data for staff tasks and work assignments
+        const staffData = {
+            currentUser: {
+                id: 101,
+                name: "Sarah Staff",
+                role: "Case Worker",
+                department: "Adoption Services"
+            },
+            assignedTasks: [
+                {
+                    id: 1,
+                    type: "Home Visit",
+                    description: "Conduct home assessment for the Sharma family",
+                    assignedBy: "Admin User",
+                    assignedDate: "2024-01-10",
+                    dueDate: "2024-01-20",
+                    status: "in-progress",
+                    priority: "High",
+                    relatedTo: "Sharma Family",
+                    notes: "Initial home visit for adoption process"
+                },
+                {
+                    id: 2,
+                    type: "Document Verification",
+                    description: "Verify income documents for John Doe",
+                    assignedBy: "Admin User",
+                    assignedDate: "2024-01-12",
+                    dueDate: "2024-01-18",
+                    status: "pending",
+                    priority: "Medium",
+                    relatedTo: "John Doe",
+                    notes: "Check employment and income verification"
+                },
+                {
+                    id: 3,
+                    type: "Case Review",
+                    description: "Review case file for Emma Johnson adoption",
+                    assignedBy: "Admin User",
+                    assignedDate: "2024-01-08",
+                    dueDate: "2024-01-15",
+                    status: "completed",
+                    priority: "High",
+                    relatedTo: "Emma Johnson",
+                    notes: "Final review before approval"
+                },
+                {
+                    id: 4,
+                    type: "Follow-up Visit",
+                    description: "Follow-up visit with Brown family",
+                    assignedBy: "Admin User",
+                    assignedDate: "2024-01-05",
+                    dueDate: "2024-01-25",
+                    status: "pending",
+                    priority: "Medium",
+                    relatedTo: "Brown Family",
+                    notes: "Check on child adjustment progress"
+                },
+                {
+                    id: 5,
+                    type: "Document Verification",
+                    description: "Verify medical records for Liam Brown",
+                    assignedBy: "Admin User",
+                    assignedDate: "2024-01-14",
+                    dueDate: "2024-01-16",
+                    status: "in-progress",
+                    priority: "High",
+                    relatedTo: "Liam Brown",
+                    notes: "Medical history and current health status"
+                }
+            ],
+            scheduledVisits: [
+                {
+                    id: 1,
+                    parentName: "John Doe",
+                    childName: "Emma Johnson",
+                    visitType: "Home Visit",
+                    scheduledDate: "2024-01-20T10:00",
+                    status: "scheduled",
+                    purpose: "Initial home assessment for adoption process"
+                },
+                {
+                    id: 2,
+                    parentName: "Priya Sharma",
+                    childName: "Liam Brown",
+                    visitType: "Follow-up",
+                    scheduledDate: "2024-01-22T14:00",
+                    status: "scheduled",
+                    purpose: "Check on child adjustment progress"
+                }
+            ],
+            rescheduleRequests: [
+                {
+                    id: 1,
+                    parentName: "John Doe",
+                    originalDate: "2024-01-20T10:00",
+                    requestedDate: "2024-01-22T14:00",
+                    reason: "Unexpected work commitment",
+                    status: "pending"
+                }
+            ],
+            documents: [
+                {
+                    id: 1,
+                    parentName: "John Doe",
+                    documentType: "Income Proof",
+                    submittedDate: "2024-01-10",
+                    status: "pending",
+                    assignedDate: "2024-01-12",
+                    taskId: 2
+                },
+                {
+                    id: 2,
+                    parentName: "Jane Smith",
+                    documentType: "Identity Proof",
+                    submittedDate: "2024-01-09",
+                    status: "verified",
+                    assignedDate: "2024-01-10",
+                    taskId: null
+                },
+                {
+                    id: 3,
+                    parentName: "Michael Brown",
+                    documentType: "Address Proof",
+                    submittedDate: "2024-01-11",
+                    status: "pending",
+                    assignedDate: "2024-01-13",
+                    taskId: null
+                },
+                {
+                    id: 4,
+                    parentName: "Priya Sharma",
+                    documentType: "Medical Certificate",
+                    submittedDate: "2024-01-08",
+                    status: "rejected",
+                    assignedDate: "2024-01-09",
+                    taskId: null
+                }
+            ],
+            parents: [
+                {
+                    id: 1,
+                    name: "John Doe",
+                    children: ["Emma Johnson"]
+                },
+                {
+                    id: 2,
+                    name: "Priya Sharma",
+                    children: ["Liam Brown"]
+                },
+                {
+                    id: 3,
+                    name: "Michael Brown",
+                    children: ["Sophia Williams"]
+                }
+            ],
+            // Track previous stats for trend calculation
+            previousStats: {
+                assignedTasks: 0,
+                completedTasks: 0,
+                pendingDocuments: 0,
+                scheduledVisits: 0
+            }
+        };
+
+        // DOM Elements
+        const menuItems = document.querySelectorAll('.menu-item');
+        const dashboardContents = document.querySelectorAll('.dashboard-content');
+        const pageTitle = document.getElementById('pageTitle');
+        const notification = document.getElementById('notification');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const taskDetailsModal = document.getElementById('taskDetailsModal');
+        const updateProgressModal = document.getElementById('updateProgressModal');
+        const scheduleVisitModal = document.getElementById('scheduleVisitModal');
+        const rescheduleRequestModal = document.getElementById('rescheduleRequestModal');
+        const closeModalButtons = document.querySelectorAll('.close-modal');
+        const updateProgressForm = document.getElementById('updateProgressForm');
+        const workReportForm = document.getElementById('workReportForm');
+        const scheduleVisitForm = document.getElementById('scheduleVisitForm');
+        const scheduleVisitBtn = document.getElementById('scheduleVisitBtn');
+
+        function handleReschedule(visitId, approve) {
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:3000/visits/handle-reschedule', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+            visitId,
+            approve   // true (for approve), false (for reject)
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            alert("Reschedule has been " + (approve ? "approved" : "rejected") + "!");
+            // Optionally reload the visit table
+        } else {
+            alert("Action failed: " + data.error);
+        }
+    });
+}
+        // Check if user is logged in
+        function checkAuth() {
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser')) || staffData.currentUser;
+            if (!currentUser || currentUser.type !== 'staff') {
+                // Redirect to login page if not authenticated
+                redirectToLogin();
+                return null;
+            }
+            return currentUser;
+        }
+
+        // Redirect to login page
+        function redirectToLogin() {
+            // In a real app, this would redirect to the actual login page
+            // For demo purposes, we'll show an alert and simulate redirect
+            showNotification('Redirecting to login page...', 'warning');
+            setTimeout(() => {
+                // Uncomment the line below in a real application
+                // window.location.href = 'login.html';
+                alert('You have been logged out. Redirecting to login page...');
+                // For demo, we'll just reload the page to simulate fresh state
+                sessionStorage.removeItem('currentUser');
+                location.reload();
+            }, 1500);
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = checkAuth();
+            if (user) {
+                updateUserInfo(user);
+                initializeDashboard();
+                
+                // Add event listener for task selection change
+                document.getElementById('reportTask').addEventListener('change', function() {
+                    const taskId = parseInt(this.value);
+                    if (taskId) {
+                        const task = staffData.assignedTasks.find(t => t.id === taskId);
+                        if (task) {
+                            // Auto-fill the form
+                            document.getElementById('reportDetails').value = 
+                                `Task: ${task.type}\nDescription: ${task.description}\nRelated to: ${task.relatedTo}\n\nWork Completed: `;
+                            document.getElementById('reportStatus').value = task.status;
+                            document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+                        }
+                    }
+                });
+                
+                // Start auto-refresh for dynamic data
+                setInterval(updateDynamicStats, 30000);
+            }
+        });
+
+        menuItems.forEach(item => {
+            if (item.id !== 'logoutBtn') {
+                item.addEventListener('click', () => {
+                    const target = item.getAttribute('data-target');
+                    
+                    // Update active menu item
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Show corresponding content
+                    dashboardContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === target) {
+                            content.classList.add('active');
+                        }
+                    });
+                    
+                    // Update page title
+                    pageTitle.textContent = item.querySelector('span').textContent;
+                });
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('currentUser');
+                showNotification('Logged out successfully', 'success');
+                
+                // Redirect to login page after a short delay
+                setTimeout(() => {
+                    redirectToLogin();
+                }, 1000);
+            }
+        });
+
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                taskDetailsModal.style.display = 'none';
+                updateProgressModal.style.display = 'none';
+                scheduleVisitModal.style.display = 'none';
+                rescheduleRequestModal.style.display = 'none';
+            });
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === taskDetailsModal) taskDetailsModal.style.display = 'none';
+            if (e.target === updateProgressModal) updateProgressModal.style.display = 'none';
+            if (e.target === scheduleVisitModal) scheduleVisitModal.style.display = 'none';
+            if (e.target === rescheduleRequestModal) rescheduleRequestModal.style.display = 'none';
+        });
+
+        updateProgressForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            updateTaskProgress();
+        });
+
+        workReportForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            submitWorkReport();
+        });
+
+        scheduleVisitForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            scheduleNewVisit();
+        });
+
+        scheduleVisitBtn.addEventListener('click', () => {
+            populateVisitForm();
+            scheduleVisitModal.style.display = 'flex';
+        });
+
+        // Functions
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateUserInfo(user) {
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('userAvatar').textContent = 
+                user.name.split(' ').map(n => n[0]).join('');
+        }
+
+        function initializeDashboard() {
+            updateDynamicStats();
+            populateRecentTasks();
+            populateUpcomingDeadlines();
+            populateAssignedWorkTable();
+            populateScheduledVisitsTable();
+            populateRescheduleRequestsTable();
+            populateDocumentsTable();
+            populateReportTaskOptions();
+        }
+
+        function updateDynamicStats() {
+            // Calculate current stats
+            const assignedTasks = staffData.assignedTasks.length;
+            const completedTasks = staffData.assignedTasks.filter(task => task.status === 'completed').length;
+            const pendingDocuments = staffData.documents.filter(doc => doc.status === 'pending').length;
+            const scheduledVisitsCount = staffData.scheduledVisits.filter(visit => visit.status === 'scheduled').length;
+
+            // Update stat cards
+            document.getElementById('assignedTasks').textContent = assignedTasks;
+            document.getElementById('completedTasks').textContent = completedTasks;
+            document.getElementById('pendingDocuments').textContent = pendingDocuments;
+            document.getElementById('scheduledVisitsCount').textContent = scheduledVisitsCount;
+
+            // Calculate and update trends
+            updateTrends(assignedTasks, completedTasks, pendingDocuments, scheduledVisitsCount);
+
+            // Store current stats for next comparison
+            staffData.previousStats = {
+                assignedTasks,
+                completedTasks,
+                pendingDocuments,
+                scheduledVisits: scheduledVisitsCount
+            };
+        }
+
+        function updateTrends(currentAssigned, currentCompleted, currentPending, currentScheduled) {
+            const prev = staffData.previousStats;
+
+            // Update assigned tasks trend
+            updateTrendElement('assignedTasksTrend', currentAssigned, prev.assignedTasks, 'tasks');
+            
+            // Update completed tasks trend
+            updateTrendElement('completedTasksTrend', currentCompleted, prev.completedTasks, 'tasks');
+            
+            // Update pending documents trend
+            updateTrendElement('pendingDocumentsTrend', currentPending, prev.pendingDocuments, 'documents');
+            
+            // Update scheduled visits trend
+            updateTrendElement('scheduledVisitsTrend', currentScheduled, prev.scheduledVisits, 'visits');
+        }
+
+        function updateTrendElement(elementId, current, previous, type) {
+            const element = document.getElementById(elementId);
+            const diff = current - previous;
+            
+            let trendText = '';
+            let trendClass = '';
+            
+            if (diff > 0) {
+                trendClass = 'trend-up';
+                trendText = `+${diff} ${type} since last update`;
+            } else if (diff < 0) {
+                trendClass = 'trend-down';
+                trendText = `${diff} ${type} since last update`;
+            } else {
+                trendClass = 'trend-neutral';
+                trendText = 'No change since last update';
+            }
+            
+            element.innerHTML = `
+                <i class="fas ${diff > 0 ? 'fa-arrow-up' : diff < 0 ? 'fa-arrow-down' : 'fa-minus'} ${trendClass}"></i>
+                <span>${trendText}</span>
+            `;
+        }
+
+        function populateRecentTasks() {
+            const container = document.getElementById('recentTasks');
+            const recentTasks = staffData.assignedTasks.slice(0, 5);
+            
+            container.innerHTML = recentTasks.map(task => `
+                <tr>
+                    <td>${task.type}</td>
+                    <td>${task.assignedBy}</td>
+                    <td>${task.dueDate}</td>
+                    <td><span class="status-badge status-${task.status}">${formatStatus(task.status)}</span></td>
+                    <td>${task.priority}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-sm" onclick="viewTaskDetails(${task.id})">
+                                <i class="fas fa-eye"></i> Details
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="openUpdateProgressModal(${task.id})">
+                                <i class="fas fa-edit"></i> Update
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateUpcomingDeadlines() {
+            const container = document.getElementById('upcomingDeadlines');
+            const today = new Date();
+            const upcomingTasks = staffData.assignedTasks
+                .filter(task => task.status !== 'completed')
+                .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+                .slice(0, 5);
+            
+            container.innerHTML = upcomingTasks.map(task => {
+                const dueDate = new Date(task.dueDate);
+                const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                
+                return `
+                <tr>
+                    <td>${task.description}</td>
+                    <td>${task.dueDate}</td>
+                    <td>${daysLeft > 0 ? daysLeft : '<span style="color: red;">Overdue</span>'}</td>
+                    <td><span class="status-badge status-${task.status}">${formatStatus(task.status)}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-sm" onclick="viewTaskDetails(${task.id})">
+                                <i class="fas fa-eye"></i> Details
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="openUpdateProgressModal(${task.id})">
+                                <i class="fas fa-edit"></i> Update
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function populateAssignedWorkTable() {
+            const container = document.getElementById('assignedWorkTable');
+            
+            container.innerHTML = staffData.assignedTasks.map(task => `
+                <tr>
+                    <td>${task.type}</td>
+                    <td>${task.description}</td>
+                    <td>${task.assignedDate}</td>
+                    <td>${task.dueDate}</td>
+                    <td><span class="status-badge status-${task.status}">${formatStatus(task.status)}</span></td>
+                    <td>${task.priority}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-sm" onclick="viewTaskDetails(${task.id})">
+                                <i class="fas fa-eye"></i> Details
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="openUpdateProgressModal(${task.id})">
+                                <i class="fas fa-edit"></i> Update
+                            </button>
+                            ${task.type === 'Home Visit' || task.type === 'Follow-up Visit' ? `
+                            <button class="btn btn-warning btn-sm" onclick="scheduleVisitForTask(${task.id})">
+                                <i class="fas fa-calendar"></i> Schedule
+                            </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateScheduledVisitsTable() {
+            const container = document.getElementById('scheduledVisitsTable');
+            
+            container.innerHTML = staffData.scheduledVisits.map(visit => `
+                <tr>
+                    <td>${visit.parentName}</td>
+                    <td>${visit.childName}</td>
+                    <td>${visit.visitType}</td>
+                    <td>${formatDateTime(visit.scheduledDate)}</td>
+                    <td><span class="status-badge status-${visit.status}">${formatStatus(visit.status)}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-sm" onclick="viewVisitDetails(${visit.id})">
+                                <i class="fas fa-eye"></i> Details
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="rescheduleVisit(${visit.id})">
+                                <i class="fas fa-edit"></i> Reschedule
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="cancelVisit(${visit.id})">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateRescheduleRequestsTable() {
+            const container = document.getElementById('rescheduleRequestsTable');
+            
+            container.innerHTML = staffData.rescheduleRequests.map(request => `
+                <tr>
+                    <td>${request.parentName}</td>
+                    <td>${formatDateTime(request.originalDate)}</td>
+                    <td>${formatDateTime(request.requestedDate)}</td>
+                    <td>${request.reason}</td>
+                    <td><span class="status-badge status-${request.status}">${formatStatus(request.status)}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-sm" onclick="viewRescheduleRequest(${request.id})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateDocumentsTable() {
+            const container = document.getElementById('documentsTable');
+            
+            container.innerHTML = staffData.documents.map(doc => `
+                <tr>
+                    <td>${doc.parentName}</td>
+                    <td>${doc.documentType}</td>
+                    <td>${doc.submittedDate}</td>
+                    <td><span class="status-badge status-${doc.status}">${formatStatus(doc.status)}</span></td>
+                    <td>${doc.assignedDate}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-sm" onclick="viewDocument(${doc.id})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            ${doc.status === 'pending' ? `
+                            <button class="btn btn-success btn-sm" onclick="updateDocumentStatus(${doc.id}, 'verified')">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="updateDocumentStatus(${doc.id}, 'rejected')">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateReportTaskOptions() {
+            const select = document.getElementById('reportTask');
+            
+            if (!select) {
+                console.error('reportTask element not found!');
+                return;
+            }
+            
+            // Clear existing options
+            // select.innerHTML = '<option value="">Select a task</option>';
+            
+            // Get incomplete tasks
+            const incompleteTasks = staffData.assignedTasks.filter(task => task.status !== 'completed');
+            
+            // Add options for each incomplete task
+            incompleteTasks.forEach(task => {
+                const option = document.createElement('option');
+                option.value = task.id;
+                option.textContent = `${task.type}: ${task.description} (Due: ${task.dueDate})`;
+                select.appendChild(option);
+            });
+            
+            console.log(`Populated dropdown with ${incompleteTasks.length} tasks`);
+        }
+
+        function populateVisitForm() {
+            const parentSelect = document.getElementById('visitParent');
+            const childSelect = document.getElementById('visitChild');
+            
+            parentSelect.innerHTML = '<option value="">Select Parent</option>';
+            childSelect.innerHTML = '<option value="">Select Child</option>';
+            
+            staffData.parents.forEach(parent => {
+                const option = document.createElement('option');
+                option.value = parent.id;
+                option.textContent = parent.name;
+                parentSelect.appendChild(option);
+            });
+            
+            // Update child options when parent is selected
+            parentSelect.addEventListener('change', function() {
+                const parentId = this.value;
+                const parent = staffData.parents.find(p => p.id == parentId);
+                
+                childSelect.innerHTML = '<option value="">Select Child</option>';
+                if (parent) {
+                    parent.children.forEach(child => {
+                        const option = document.createElement('option');
+                        option.value = child;
+                        option.textContent = child;
+                        childSelect.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function formatStatus(status) {
+            const statusMap = {
+                'pending': 'Pending',
+                'in-progress': 'In Progress',
+                'completed': 'Completed',
+                'on-hold': 'On Hold',
+                'verified': 'Verified',
+                'rejected': 'Rejected',
+                'scheduled': 'Scheduled',
+                'reschedule-requested': 'Reschedule Requested'
+            };
+            return statusMap[status] || status;
+        }
+
+        function formatDateTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+            return date.toLocaleString();
+        }
+
+        function viewTaskDetails(taskId) {
+            const task = staffData.assignedTasks.find(t => t.id === taskId);
+            if (task) {
+                const content = document.getElementById('taskDetailsContent');
+                content.innerHTML = `
+                    <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="info-item">
+                            <div class="info-label">Task Type</div>
+                            <div class="info-value">${task.type}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Assigned By</div>
+                            <div class="info-value">${task.assignedBy}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Assigned Date</div>
+                            <div class="info-value">${task.assignedDate}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Due Date</div>
+                            <div class="info-value">${task.dueDate}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value"><span class="status-badge status-${task.status}">${formatStatus(task.status)}</span></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Priority</div>
+                            <div class="info-value">${task.priority}</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Description</div>
+                        <div class="info-value">${task.description}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Related To</div>
+                        <div class="info-value">${task.relatedTo}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Notes</div>
+                        <div class="info-value">${task.notes}</div>
+                    </div>
+                    <div class="action-buttons" style="margin-top: 20px; justify-content: center;">
+                        <button class="btn btn-success" onclick="openUpdateProgressModal(${task.id})">
+                            <i class="fas fa-edit"></i> Update Progress
+                        </button>
+                    </div>
+                `;
+                taskDetailsModal.style.display = 'flex';
+            }
+        }
+
+        function openUpdateProgressModal(taskId) {
+            const task = staffData.assignedTasks.find(t => t.id === taskId);
+            if (task) {
+                document.getElementById('updateTaskId').value = taskId;
+                document.getElementById('progressStatus').value = task.status;
+                document.getElementById('progressNotes').value = '';
+                
+                // Set default estimated completion date to current due date
+                document.getElementById('estimatedCompletion').value = task.dueDate;
+                
+                updateProgressModal.style.display = 'flex';
+            }
+        }
+
+        function updateTaskProgress() {
+            const taskId = parseInt(document.getElementById('updateTaskId').value);
+            const status = document.getElementById('progressStatus').value;
+            const notes = document.getElementById('progressNotes').value;
+            const estimatedCompletion = document.getElementById('estimatedCompletion').value;
+            
+            const task = staffData.assignedTasks.find(t => t.id === taskId);
+            if (task) {
+                task.status = status;
+                
+                // If task is completed, update completion date
+                if (status === 'completed') {
+                    task.completedDate = new Date().toISOString().split('T')[0];
+                }
+                
+                // Update due date if changed
+                if (estimatedCompletion && estimatedCompletion !== task.dueDate) {
+                    task.dueDate = estimatedCompletion;
+                }
+                
+                updateProgressModal.style.display = 'none';
+                updateProgressForm.reset();
+                
+                // Refresh all task-related displays
+                updateDynamicStats();
+                initializeDashboard();
+                showNotification('Task progress updated successfully!', 'success');
+            }
+        }
+
+        function updateDocumentStatus(docId, status) {
+            const doc = staffData.documents.find(d => d.id === docId);
+            if (doc) {
+                doc.status = status;
+                doc.verifiedDate = new Date().toISOString().split('T')[0];
+                
+                // If this document is linked to a task, update task status
+                if (doc.taskId) {
+                    const task = staffData.assignedTasks.find(t => t.id === doc.taskId);
+                    if (task && status === 'verified') {
+                        task.status = 'completed';
+                        task.completedDate = new Date().toISOString().split('T')[0];
+                    }
+                }
+                
+                populateDocumentsTable();
+                updateDynamicStats();
+                showNotification(`Document ${status} successfully!`, 'success');
+            }
+        }
+
+        function submitWorkReport() {
+            const taskId = parseInt(document.getElementById('reportTask').value);
+            const details = document.getElementById('reportDetails').value;
+            const status = document.getElementById('reportStatus').value;
+            const completionDate = document.getElementById('reportDate').value;
+            
+            if (!taskId) {
+                showNotification('Please select a task first!', 'error');
+                return;
+            }
+            
+            const task = staffData.assignedTasks.find(t => t.id === taskId);
+            if (task) {
+                // Update task status
+                const previousStatus = task.status;
+                task.status = status;
+                
+                // If marked as completed, set completion date
+                if (status === 'completed') {
+                    task.completedDate = completionDate;
+                }
+                
+                // In a real application, this would save the report to the database
+                console.log('Work report submitted:', {
+                    taskId,
+                    taskDescription: task.description,
+                    details,
+                    status,
+                    completionDate
+                });
+                
+                workReportForm.reset();
+                updateDynamicStats();
+                initializeDashboard();
+                
+                showNotification(`Work report submitted successfully! Task status updated from ${formatStatus(previousStatus)} to ${formatStatus(status)}.`, 'success');
+            } else {
+                showNotification('Selected task not found!', 'error');
+            }
+        }
+
+        function generateWorkReport() {
+            // Calculate report data
+            const completedThisMonth = staffData.assignedTasks.filter(task => 
+                task.status === 'completed' && 
+                task.completedDate && 
+                task.completedDate.startsWith('2024-01') // Current month
+            ).length;
+            
+            const pendingTasks = staffData.assignedTasks.filter(t => t.status !== 'completed').length;
+            const inProgressTasks = staffData.assignedTasks.filter(t => t.status === 'in-progress').length;
+            
+            // Create report content
+            const reportContent = `
+AdoptLink Work Report
+Generated: ${new Date().toLocaleDateString()}
+Staff Member: ${staffData.currentUser.name}
+
+SUMMARY:
+========
+Completed Tasks This Month: ${completedThisMonth}
+Pending Tasks: ${pendingTasks}
+Tasks In Progress: ${inProgressTasks}
+Scheduled Visits: ${staffData.scheduledVisits.filter(v => v.status === 'scheduled').length}
+
+TASK DETAILS:
+============
+${staffData.assignedTasks.map(task => `
+Task: ${task.type}
+Description: ${task.description}
+Status: ${formatStatus(task.status)}
+Due Date: ${task.dueDate}
+Priority: ${task.priority}
+${task.completedDate ? `Completed: ${task.completedDate}` : ''}
+`).join('\n')}
+
+VISITS SCHEDULED:
+=================
+${staffData.scheduledVisits.map(visit => `
+Parent: ${visit.parentName}
+Child: ${visit.childName}
+Type: ${visit.visitType}
+Date: ${formatDateTime(visit.scheduledDate)}
+Status: ${formatStatus(visit.status)}
+`).join('\n')}
+    `;
+    
+            // Create and trigger download
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `work-report-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('Work report downloaded successfully!', 'success');
+        }
+
+        function scheduleVisitForTask(taskId) {
+            const task = staffData.assignedTasks.find(t => t.id === taskId);
+            if (task) {
+                populateVisitForm();
+                
+                // Pre-fill the form with task information
+                const parent = staffData.parents.find(p => p.name === task.relatedTo);
+                if (parent) {
+                    document.getElementById('visitParent').value = parent.id;
+                    
+                    // Trigger change event to populate children
+                    const event = new Event('change');
+                    document.getElementById('visitParent').dispatchEvent(event);
+                    
+                    if (parent.children.length > 0) {
+                        document.getElementById('visitChild').value = parent.children[0];
+                    }
+                }
+                
+                document.getElementById('visitType').value = task.type.toLowerCase().replace(' ', '-');
+                document.getElementById('visitPurpose').value = task.description;
+                
+                scheduleVisitModal.style.display = 'flex';
+            }
+        }
+
+        function scheduleNewVisit() {
+            const parentId = document.getElementById('visitParent').value;
+            const childName = document.getElementById('visitChild').value;
+            const visitType = document.getElementById('visitType').value;
+            const visitDate = document.getElementById('visitDate').value;
+            const purpose = document.getElementById('visitPurpose').value;
+            
+            const parent = staffData.parents.find(p => p.id == parentId);
+            
+            const newVisit = {
+                id: staffData.scheduledVisits.length + 1,
+                parentName: parent ? parent.name : 'Unknown Parent',
+                childName: childName,
+                visitType: visitType,
+                scheduledDate: visitDate,
+                status: "scheduled",
+                purpose: purpose
+            };
+
+            staffData.scheduledVisits.push(newVisit);
+            scheduleVisitModal.style.display = 'none';
+            scheduleVisitForm.reset();
+            
+            populateScheduledVisitsTable();
+            updateDynamicStats();
+            showNotification('Visit scheduled successfully! The parent has been notified.', 'success');
+            
+            // In a real application, this would send a notification to the parent
+        }
+
+        function viewRescheduleRequest(requestId) {
+            const request = staffData.rescheduleRequests.find(r => r.id === requestId);
+            if (request) {
+                const content = document.getElementById('rescheduleRequestContent');
+                content.innerHTML = `
+                    <div class="info-grid" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="info-item">
+                            <div class="info-label">Parent Name</div>
+                            <div class="info-value">${request.parentName}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Original Date</div>
+                            <div class="info-value">${formatDateTime(request.originalDate)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Requested Date</div>
+                            <div class="info-value">${formatDateTime(request.requestedDate)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Reason</div>
+                            <div class="info-value">${request.reason}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Store the current request ID for the approve/reject functions
+                rescheduleRequestModal.setAttribute('data-request-id', requestId);
+                rescheduleRequestModal.style.display = 'flex';
+            }
+        }
+
+        function approveReschedule() {
+            const requestId = parseInt(rescheduleRequestModal.getAttribute('data-request-id'));
+            const request = staffData.rescheduleRequests.find(r => r.id === requestId);
+            
+            if (request) {
+                // Update the scheduled visit with the new date
+                const visit = staffData.scheduledVisits.find(v => 
+                    v.parentName === request.parentName && 
+                    formatDateTime(v.scheduledDate) === formatDateTime(request.originalDate)
+                );
+                
+                if (visit) {
+                    visit.scheduledDate = request.requestedDate;
+                    visit.status = 'scheduled';
+                }
+                
+                // Update request status
+                request.status = 'approved';
+                
+                rescheduleRequestModal.style.display = 'none';
+                updateDynamicStats();
+                initializeDashboard();
+                showNotification('Reschedule request approved! The parent has been notified.', 'success');
+                
+                // In a real application, this would send a notification to the parent
+            }
+        }
+
+        function rejectReschedule() {
+            const requestId = parseInt(rescheduleRequestModal.getAttribute('data-request-id'));
+            const request = staffData.rescheduleRequests.find(r => r.id === requestId);
+            
+            if (request) {
+                // Update request status
+                request.status = 'rejected';
+                
+                rescheduleRequestModal.style.display = 'none';
+                updateDynamicStats();
+                initializeDashboard();
+                showNotification('Reschedule request rejected! The parent has been notified.', 'success');
+                
+                // In a real application, this would send a notification to the parent
+            }
+        }
+
+        function refreshTasks() {
+            // In a real application, this would fetch updated tasks from the server
+            updateDynamicStats();
+            initializeDashboard();
+            showNotification('Tasks refreshed!', 'success');
+        }
+
+        function searchTasks() {
+            const searchTerm = document.getElementById('workSearch').value.toLowerCase();
+            const filteredTasks = staffData.assignedTasks.filter(task => 
+                task.type.toLowerCase().includes(searchTerm) || 
+                task.description.toLowerCase().includes(searchTerm) ||
+                task.relatedTo.toLowerCase().includes(searchTerm)
+            );
+            
+            const container = document.getElementById('assignedWorkTable');
+            container.innerHTML = filteredTasks.map(task => `
+                <tr>
+                    <td>${task.type}</td>
+                    <td>${task.description}</td>
+                    <td>${task.assignedDate}</td>
+                    <td>${task.dueDate}</td>
+                    <td><span class="status-badge status-${task.status}">${formatStatus(task.status)}</span></td>
+                    <td>${task.priority}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary btn-sm" onclick="viewTaskDetails(${task.id})">
+                                <i class="fas fa-eye"></i> Details
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="openUpdateProgressModal(${task.id})">
+                                <i class="fas fa-edit"></i> Update
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewDocument(docId) {
+            const doc = staffData.documents.find(d => d.id === docId);
+            if (doc) {
+                alert(`Document Details:\n\nParent: ${doc.parentName}\nDocument Type: ${doc.documentType}\nSubmitted: ${doc.submittedDate}\nStatus: ${formatStatus(doc.status)}\n\nIn a real application, this would show the actual document.`);
+            }
+        }
+
+        function viewVisitDetails(visitId) {
+            const visit = staffData.scheduledVisits.find(v => v.id === visitId);
+            if (visit) {
+                alert(`Visit Details:\n\nParent: ${visit.parentName}\nChild: ${visit.childName}\nType: ${visit.visitType}\nDate: ${formatDateTime(visit.scheduledDate)}\nPurpose: ${visit.purpose}\nStatus: ${formatStatus(visit.status)}`);
+            }
+        }
+
+        function rescheduleVisit(visitId) {
+            const visit = staffData.scheduledVisits.find(v => v.id === visitId);
+            if (visit) {
+                const newDate = prompt('Enter new date and time (YYYY-MM-DDTHH:MM):', visit.scheduledDate);
+                if (newDate) {
+                    visit.scheduledDate = newDate;
+                    populateScheduledVisitsTable();
+                    updateDynamicStats();
+                    showNotification('Visit rescheduled successfully! The parent has been notified.', 'success');
+                    
+                    // In a real application, this would send a notification to the parent
+                }
+            }
+        }
+
+        function cancelVisit(visitId) {
+            if (confirm('Are you sure you want to cancel this visit?')) {
+                const visit = staffData.scheduledVisits.find(v => v.id === visitId);
+                if (visit) {
+                    visit.status = 'cancelled';
+                    populateScheduledVisitsTable();
+                    updateDynamicStats();
+                    showNotification('Visit cancelled successfully! The parent has been notified.', 'success');
+                    
+                    // In a real application, this would send a notification to the parent
+                }
+            }
+        }
+
+        // Simulate dynamic data changes for demo purposes
+        function simulateDataChanges() {
+            // Randomly update task statuses
+            staffData.assignedTasks.forEach(task => {
+                if (task.status !== 'completed' && Math.random() < 0.1) {
+                    if (task.status === 'pending') {
+                        task.status = 'in-progress';
+                    } else if (task.status === 'in-progress' && Math.random() < 0.2) {
+                        task.status = 'completed';
+                        task.completedDate = new Date().toISOString().split('T')[0];
+                    }
+                }
+            });
+
+            // Randomly add new tasks
+            if (Math.random() < 0.05) {
+                const newTask = {
+                    id: staffData.assignedTasks.length + 1,
+                    type: ["Home Visit", "Document Verification", "Case Review"][Math.floor(Math.random() * 3)],
+                    description: "New task assigned for review",
+                    assignedBy: "Admin User",
+                    assignedDate: new Date().toISOString().split('T')[0],
+                    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    status: "pending",
+                    priority: ["Low", "Medium", "High"][Math.floor(Math.random() * 3)],
+                    relatedTo: "New Case",
+                    notes: "Automatically assigned task"
+                };
+                staffData.assignedTasks.push(newTask);
+            }
+
+            updateDynamicStats();
+        }
+
+        // Start simulating data changes every 30 seconds
+        setInterval(simulateDataChanges, 30000);
+    </script>
+</body>
+</html>
